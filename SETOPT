@@ -1,0 +1,13 @@
+
+ALL: SETOPT.EXE
+
+SETOPT.res : SETOPT.rc SETOPT.rch
+     rc -r SETOPT.rc
+
+SETOPT.obj : SETOPT.c SETOPT.h
+     cl -B1 c1l.exe -c -G2s -Zdeip -ALu -W3 -D LINT_ARGS -Od  SETOPT.c
+
+SETOPT.EXE : SETOPT.res SETOPT.def SETOPT.obj
+     link /CO @SETOPT.lnk
+     rc SETOPT.res
+

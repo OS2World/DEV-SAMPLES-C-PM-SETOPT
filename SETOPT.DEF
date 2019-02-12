@@ -1,0 +1,11 @@
+NAME            SETOPT WINDOWAPI
+STUB            'OS2STUB.EXE'
+CODE            PRELOAD MOVEABLE
+DATA            LOADONCALL MOVEABLE MULTIPLE READWRITE
+HEAPSIZE        4096
+STACKSIZE       8192
+EXPORTS         WNDPROC                @1
+                SETFONTMSGPROC         @2
+                SETCOLORMSGPROC        @3
+
+

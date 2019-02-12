@@ -1,0 +1,15 @@
+
+/* This file contains all of the ID values necessary to the                */
+/* resource script.                                                        */
+#include "SETFONT.h"
+#include "SETCOLOR.h"
+#define ID_SETOPT                                1
+#define IDM_OPTIONS                              1000
+#define IDM_O_SETFONT                                 1050
+#define IDM_O_SETCOLOR                                1100
+#define IDLG_SETFONT                             100
+#define IDLG_SETCOLOR                            101
+#define IDS_ERR_WINDOW_CREATE                    1
+#define IDS_ERR_WINDOW_POS                       2
+
+

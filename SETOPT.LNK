@@ -1,0 +1,6 @@
+    SETOPT.obj /align:16
+    SETOPT.EXE
+    SETOPT.MAP /NOD
+    os2.lib +
+    llibcmt.lib
+    SETOPT.DEF
