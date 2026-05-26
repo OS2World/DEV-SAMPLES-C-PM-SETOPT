@@ -1,3 +1,7 @@
+/* SETFONT.H                                                         */
+#ifndef _SETFONT_H_
+#define _SETFONT_H_
+
 #define MLE_SETFONT             28616
 #define PB_SETFONT_HELP         28615
 #define PB_SETFONT_CANCEL       28614
@@ -14,5 +18,10 @@
 #define LB_SETFONT_FONT         28603
 #define TXT_SETFONT_SIZE        28602
 #define TXT_SETFONT_FONT        28601
+
+/* Wrapped in a guard to prevent redefinition conflicts with SETOPT.rch */
+#ifndef IDLG_SETFONT
 #define IDLG_SETFONT            28600
-
+#endif
+
+#endif /* _SETFONT_H_ */

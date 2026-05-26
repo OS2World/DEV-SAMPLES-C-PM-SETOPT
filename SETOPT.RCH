@@ -1,15 +1,25 @@
+/* SETOPT.RCH                                                                */
+/* This file contains all of the ID values necessary to the                 */
+/* resource script.                                                         */
 
-/* This file contains all of the ID values necessary to the                */
-/* resource script.                                                        */
+#ifndef IDLG_SETFONT
+#define IDLG_SETFONT                             100
+#endif
+
+#ifndef IDLG_SETCOLOR
+#define IDLG_SETCOLOR                            101
+#endif
+
+/* Include the component headers. Note: For a clean compile, ensure         */
+/* SETFONT.h and SETCOLOR.h wrap their definitions in '#ifndef' guards too   */
 #include "SETFONT.h"
 #include "SETCOLOR.h"
+                                                     
 #define ID_SETOPT                                1
 #define IDM_OPTIONS                              1000
-#define IDM_O_SETFONT                                 1050
-#define IDM_O_SETCOLOR                                1100
-#define IDLG_SETFONT                             100
-#define IDLG_SETCOLOR                            101
+#define IDM_O_SETFONT                            1050
+#define IDM_O_SETCOLOR                           1100
+
+/* Duplicate trailing #defines removed to prevent redefinition warnings */
 #define IDS_ERR_WINDOW_CREATE                    1
 #define IDS_ERR_WINDOW_POS                       2
-
-

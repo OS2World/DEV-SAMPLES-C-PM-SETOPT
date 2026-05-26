@@ -87,6 +87,3 @@ BEGIN
                 WC_BUTTON, BS_PUSHBUTTON | BS_HELP | WS_TABSTOP | WS_VISIBLE
     END
 END
-
-
-

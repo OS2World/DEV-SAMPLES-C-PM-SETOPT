@@ -1,11 +1,15 @@
+;-------------------------------------
+; SETOPT.DEF module definition file
+;-------------------------------------
 NAME            SETOPT WINDOWAPI
-STUB            'OS2STUB.EXE'
+
+DESCRIPTION     '@#OS2World:1.01#@##1## 25 May 2026 20:00:00     ARCAOS-507::::::v1.01@@SETOPT'
+
 CODE            PRELOAD MOVEABLE
 DATA            LOADONCALL MOVEABLE MULTIPLE READWRITE
 HEAPSIZE        4096
 STACKSIZE       8192
-EXPORTS         WNDPROC                @1
-                SETFONTMSGPROC         @2
-                SETCOLORMSGPROC        @3
-
-
+EXPORTS         
+                WNDPROC         = WndProc         @1
+                SETFONTMSGPROC  = SETFONTMsgProc  @2
+                SETCOLORMSGPROC = SETCOLORMsgProc @3

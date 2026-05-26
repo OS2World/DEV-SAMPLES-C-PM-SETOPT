@@ -1,3 +1,7 @@
+/* SETCOLOR.H                                                         */
+#ifndef _SETCOLOR_H_
+#define _SETCOLOR_H_
+
 #define MLE_SETCOLOR                   24313
 #define PB_SETCOLOR_APPLY              24312
 #define PB_SETCOLOR_HELP               24311
@@ -11,5 +15,10 @@
 #define LB_SETCOLOR_FOREGROUND         24303
 #define GRP_SETCOLOR_BACKGROUND        24302
 #define GRP_SETCOLOR_FOREGROUND        24301
+
+/* Wrapped in a guard to prevent redefinition conflicts with SETOPT.rch */
+#ifndef IDLG_SETCOLOR
 #define IDLG_SETCOLOR                  24300
-
+#endif
+
+#endif /* _SETCOLOR_H_ */

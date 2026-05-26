@@ -16,7 +16,7 @@
 
 #define DOSASSERT(x) x;
 
-SHORT cdecl main(argc, argv)
+int _cdecl main(argc, argv)
 int argc;
 char *argv[];
 {
@@ -51,8 +51,8 @@ char *argv[];
           FCF_SIZEBORDER   |
           FCF_MENU         |
           FCF_SHELLPOSITION,
-          szAppName,
-          "",
+          (PCH) szAppName,
+          (PCH) "",
           ID_SETOPT,
           0, 0,
           0, 0,
@@ -111,7 +111,8 @@ MPARAM mp2;
 {                        /* Beginning of message processor                 */
    HPS hPS;              /* Handle for the Presentation Space              */
    RECTL rClient;        /* Handle to rectangle formed by client area      */
-   USHORT rc;            /* common return code value                       */
+   ULONG rc;             /* common return code value                       */
+   (void)rc; 			/* Silences unused warning */
 
    switch(message)
      {
@@ -206,7 +207,9 @@ MPARAM mp2;
  static SHORT sfValidate = TRUE;
  SHORT  i, j ;
  static HWND  hWndParent;
-
+  (void)sfValidate;
+  (void)hWndParent;
+  //(void)hWnd;
    typedef struct _SETFONTS {
       LONG         lNumberFonts ;
       SHORT        sDfltSize ;
@@ -224,8 +227,9 @@ MPARAM mp2;
    SEL          selFonts ;
    CHAR         szFont[257];
    HWND         hWnd ;
+   (void)hWnd;
    CHAR         szDfltFont[FACESIZE];
-   PFONTMETRICS pFontMetrics ;
+   PFONTMETRICS pFontMetrics = NULL;
    PSETFONTS    pSetFonts ;
    MRESULT      rc ;
    static SHORT sOutlineFonts[10] = { 6,8,10,12,14,18,24,30,36,48 } ;
@@ -446,7 +450,8 @@ MPARAM mp2;
                              fScanning = fSeries = TRUE ;
                              for ( i=0 ; i<(USHORT)pSetFonts->lNumberFonts ; i++ )
                              {
-                                pFontMetrics = MAKEP( SELECTOROF(pSetFonts), (i*sizeof(FONTMETRICS))+sizeof(SETFONTS) ) ;
+                                //pFontMetrics = MAKEP( SELECTOROF(pSetFonts), (i*sizeof(FONTMETRICS))+sizeof(SETFONTS) ) ;
+                                pFontMetrics = (PFONTMETRICS)((PBYTE)pSetFonts + sizeof(SETFONTS) + (i * sizeof(FONTMETRICS)));
                                 strcpy( szFont, pFontMetrics->szFacename ) ;
                                 if ( !(pFontMetrics->fsDefn & FM_DEFN_OUTLINE) )
                                 {
@@ -514,7 +519,7 @@ MPARAM mp2;
                                                    pFontMetrics->fsSelection,
                                                    pFontMetrics->lMaxBaselineExt,
                                                    pFontMetrics->lAveCharWidth,
-                                                   pFontMetrics, fScanning ) ;
+                                                   pFontMetrics, (int)fScanning ) ;
                                       }
                                       else
                                       {
@@ -633,7 +638,7 @@ MPARAM mp2;
                                 pFontMetrics->lMaxBaselineExt,
                                 pSetFonts->fatDefault.lMaxBaselineExt,
                                 pFontMetrics->lAveCharWidth,
-                                pSetFonts->fatDefault.lAveCharWidth, pFontMetrics, rc ) ;
+                                pSetFonts->fatDefault.lAveCharWidth, pFontMetrics, (ULONG)rc ) ;
                        if ( pFontMetrics->fsDefn & FM_DEFN_OUTLINE )
                        {
                           rc=WinSendDlgItemMsg( hWndDlg, MLE_SETFONT, MLM_SETTABSTOP, MPFROMSHORT(8*sOutlineFonts[sLBPos]), 0L ) ;
@@ -642,8 +647,8 @@ MPARAM mp2;
                        if ( !rc )
                        {
                           WinAlarm( HWND_DESKTOP, WA_ERROR ) ;
-                          WinMessageBox( HWND_DESKTOP, hWndDlg, "Unable to set new font",
-                                         "ReadBBS - Set Font", 0, MB_OK | MB_ICONHAND ) ;
+                          WinMessageBox( HWND_DESKTOP, hWndDlg,(PCSZ) "Unable to set new font",
+                                         (PCSZ) "ReadBBS - Set Font", 0, MB_OK | MB_ICONHAND ) ;
                        } /* endif */
                        WinEnableWindow( WinWindowFromID( hWndDlg, PB_SETFONT_OK ), TRUE ) ;
                        WinEnableWindow( WinWindowFromID( hWndDlg, PB_SETFONT_APPLY ), TRUE ) ;
@@ -659,7 +664,8 @@ MPARAM mp2;
            {
             case PB_SETFONT_OK:
             case DID_OK: /* Button text: "OK"                              */
-                 DosFreeSeg( SELECTOROF(pSetFonts) ) ;
+                 //DosFreeSeg( SEL (pSetFonts) ) ;
+                 DosFreeMem( pSetFonts );
                  WinDismissDlg(hWndDlg, TRUE);
                  break;
 
@@ -670,7 +676,8 @@ MPARAM mp2;
             case DID_CANCEL: /* Button text: "Cancel"                      */
                  /* Ignore data values entered into the dialog controls    */
                  /* and dismiss the dialog window                          */
-                 DosFreeSeg( SELECTOROF(pSetFonts) ) ;
+                 //DosFreeSeg( SELECTOROF(pSetFonts) ) ;
+                 DosFreeMem( pSetFonts );
                  WinDismissDlg(hWndDlg, FALSE);
                  break;
 
@@ -722,7 +729,7 @@ MPARAM mp2;
  static HWND  hWndParent;
    SHORT sLBPos ;
    LONG lBackColor, lTextColor ;
-   IPT  iptStart, iptStop ;
+   IPT  iptStart;
    ULONG ulImport ;
    CHAR szText[] = "\tThis is an example of text.\r\nThis is an example of selected text." ;
    CHAR szColor[16][16] = { "White","Blue ","Red ","Pink ","Green ","Cyan ",
@@ -730,13 +737,14 @@ MPARAM mp2;
                             "Dark Grey ","Dark Blue ","Dark Red ","Dark Pink ",
                             "Dark Green ",
                             "Dark Cyan ","Brown ","Pale Grey " } ;
-
+	(void)sfValidate;
+	(void)hWndParent;
  switch(message)
    {
     case WM_INITDLG:
          hWndParent = (HWND)mp2;
-         lBackColor=WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYBACKCOLOR, 0L, 0L ) ;
-         lTextColor=WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYTEXTCOLOR, 0L, 0L ) ;
+         lBackColor = (LONG)WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYBACKCOLOR, 0L, 0L );
+		 lTextColor = (LONG)WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYTEXTCOLOR, 0L, 0L );
          for ( i=CLR_BACKGROUND ; i<=CLR_PALEGRAY ; i++ )
          {
             sLBPos=SHORT1FROMMR( WinSendDlgItemMsg( hWndDlg, LB_SETCOLOR_FOREGROUND,
@@ -767,7 +775,9 @@ MPARAM mp2;
          WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_SETIMPORTEXPORT, MPFROMP(szText), &ulImport ) ;
          iptStart = (IPT)-1L ;
          WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_IMPORT, &iptStart, MPFROMSHORT(sizeof(szText)) ) ;
-         WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_SETSEL, (IPT)29L, (IPT)MPFROMSHORT(sizeof(szText)) ) ;
+		 WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_SETSEL, (MPARAM)29L, (MPARAM)sizeof(szText) );  
+         //WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_SETSEL, (IPT)29L, (IPT)MPFROMSHORT(sizeof(szText)) ) ;
+         WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_SETSEL, MPFROMLONG(29L), MPFROMLONG(sizeof(szText)) ) ;
          WinSetFocus( HWND_DESKTOP, WinWindowFromID( hWndDlg, MLE_SETCOLOR ) ) ;
          WinEnableWindow( WinWindowFromID( hWndDlg, PB_SETCOLOR_OK ), FALSE ) ;
          WinEnableWindow( WinWindowFromID( hWndDlg, PB_SETCOLOR_APPLY ), FALSE ) ;
@@ -847,16 +857,16 @@ MPARAM mp2;
            {
             case PB_SETCOLOR_OK:
             case DID_OK: /* Button text: "OK"                              */
-                 lBackColor=WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYBACKCOLOR, 0L, 0L ) ;
-                 lTextColor=WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYTEXTCOLOR, 0L, 0L ) ;
+                 lBackColor = (LONG)WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYBACKCOLOR, 0L, 0L );
+		 		 lTextColor = (LONG)WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYTEXTCOLOR, 0L, 0L );
 //                 WinSendMsg( pMleData->hWndReadMLE, MLM_SETTEXTCOLOR, MPFROMLONG( lTextColor ), 0L ) ;
 //                 WinSendMsg( pMleData->hWndReadMLE, MLM_SETBACKCOLOR, MPFROMLONG( lBackColor ), 0L ) ;
                  WinDismissDlg(hWndDlg, TRUE);
                  break;
 
             case PB_SETCOLOR_APPLY: /* Button text: "Apply"                */
-                 lBackColor=WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYBACKCOLOR, 0L, 0L ) ;
-                 lTextColor=WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYTEXTCOLOR, 0L, 0L ) ;
+                 lBackColor = (LONG)WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYBACKCOLOR, 0L, 0L );
+		 		 lTextColor = (LONG)WinSendDlgItemMsg( hWndDlg, MLE_SETCOLOR, MLM_QUERYTEXTCOLOR, 0L, 0L );
 //                 WinSendMsg( pMleData->hWndReadMLE, MLM_SETTEXTCOLOR, MPFROMLONG( lTextColor ), 0L ) ;
 //                 WinSendMsg( pMleData->hWndReadMLE, MLM_SETBACKCOLOR, MPFROMLONG( lBackColor ), 0L ) ;
                  WinSetFocus( HWND_DESKTOP, WinWindowFromID( hWndDlg, MLE_SETCOLOR ) ) ;
@@ -955,7 +965,8 @@ HWND cwCreateWindow(
    USHORT SizeStyle;     /* local window positioning options               */
    CHAR   MsgBuffer[80]; /* buffer for error messages                      */
    HPS    hPS;           /* handle to a presentation space                 */
-   int    xmod, ymod;    /* modifiers for sizing                           */
+   int    xmod = 0;
+   int    ymod = 0;    /* modifiers for sizing                           */
    #define DLGXMOD  4    /* Dialog units X modulo */
    #define DLGYMOD  8    /* Dialog units Y modulo */
    FONTMETRICS fm;       /* structure for determing modifiers              */
@@ -974,8 +985,8 @@ HWND cwCreateWindow(
    /*     notify the user and exit this function                           */
    if(hWndFrame == 0)
      {
-      WinLoadString(hAB, 0, IDS_ERR_WINDOW_CREATE, 80, MsgBuffer);
-      WinMessageBox(HWND_DESKTOP, hWndParent, MsgBuffer,
+      WinLoadString(hAB, 0, IDS_ERR_WINDOW_CREATE, 80, (PSZ)MsgBuffer);
+      WinMessageBox(HWND_DESKTOP, hWndParent, (PCSZ)MsgBuffer,
                     0, 0, MB_OK|MB_ICONEXCLAMATION);
       return((HWND)0);
      }
@@ -1014,8 +1025,8 @@ HWND cwCreateWindow(
    /*     and exit this function                                           */
    if(!rc)
      {
-      WinLoadString(hAB, 0, IDS_ERR_WINDOW_POS, 80, MsgBuffer);
-      WinMessageBox(HWND_DESKTOP, hWndParent, MsgBuffer,
+      WinLoadString(hAB, 0, IDS_ERR_WINDOW_POS, 80, (PSZ)MsgBuffer);
+      WinMessageBox(HWND_DESKTOP, hWndParent, (PCSZ)MsgBuffer,
                     0, 0, MB_OK|MB_ICONEXCLAMATION);
       return((HWND)0);
      }
@@ -1023,9 +1034,3 @@ HWND cwCreateWindow(
    /* return the handle to the frame window                                */
    return(hWndFrame);
 }  /* End of cwCreateWindow */
-
-
-
-
-
-
