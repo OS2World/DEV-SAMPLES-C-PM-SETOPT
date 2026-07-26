@@ -1,28 +1,44 @@
 /*
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *   SETOPT.C                                                  *
  *   Author: Larry B. Finkelstein                              *
  *   (C) Copyright 1991.                                       *
  *   Creative Systems Programming Corporation.                 *
  *   All Rights Reserved.                                      *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *                                                             *
- * This program provides an example of how to set the color    *
- * and font for a Multi-Line Entry (MLE) control.              *
+ * This sample demonstrates how to set the color and font for  *
+ * a Multi-Line Entry (MLE) control in an OS/2 PM application. *
+ *                                                             *
+ * Two dialogs are provided under the Options menu:            *
+ *   - "Set font..."  (SETFONTMsgProc)  lets the user choose   *
+ *     any installed font and point size; bold, italic,        *
+ *     underscore, and strikeout styles can be toggled.        *
+ *   - "Set color..." (SETCOLORMsgProc) lets the user pick     *
+ *     the MLE foreground and background colors from the 16    *
+ *     standard OS/2 palette entries.                          *
+ *                                                             *
+ * Key PM APIs demonstrated:                                   *
+ *   GpiQueryFonts, MLM_SETFONT, MLM_QUERYFONT                 *
+ *   MLM_SETTEXTCOLOR, MLM_SETBACKCOLOR                        *
+ *   MLM_QUERYTEXTCOLOR, MLM_QUERYBACKCOLOR                    *
+ *   WinDlgBox, WinSendDlgItemMsg, WinDismissDlg               *
  *                                                             *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 */
 #define EXTERN
 #include "SETOPT.h"
 
+/* DOSASSERT is a no-op wrapper kept from the original source.
+   It executes the expression but does not terminate on failure. */
 #define DOSASSERT(x) x;
 
-int _cdecl main(argc, argv)
-int argc;
-char *argv[];
+int main(int argc, char *argv[])
 {
  QMSG qmsg;  /* MSG structure to store your messages                       */
  PID  pid;   /* Process identifier for adding name to switch list          */
  TID  tid;   /* Thread identifier                                          */
+ (void)argc; (void)argv; /* not used; PM apps receive params via WinMain  */
 
  /* The WinInitialize routine initializes the Presentation Manager         */
  /* facilities for use by this application and returns a handle to the     */
@@ -50,6 +66,7 @@ char *argv[];
           FCF_MAXBUTTON    |
           FCF_SIZEBORDER   |
           FCF_MENU         |
+          FCF_ICON         |
           FCF_SHELLPOSITION,
           (PCH) szAppName,
           (PCH) "",
@@ -89,6 +106,7 @@ char *argv[];
  WinDestroyMsgQueue(hMQ);     /* Destroy this application's message queue  */
  WinTerminate(hAB);           /* Terminate this application's use of the   */
                               /* Presentation Manager resources            */
+ return 0;
 } /* end of main */
 
 /***************************************************************************/
@@ -103,16 +121,12 @@ char *argv[];
 /*                                                                         */
 /***************************************************************************/
 
-MRESULT EXPENTRY WndProc(hWnd, message, mp1, mp2)
-HWND hWnd;
-USHORT message;
-MPARAM mp1;
-MPARAM mp2;
+MRESULT EXPENTRY WndProc(HWND hWnd, USHORT message, MPARAM mp1, MPARAM mp2)
 {                        /* Beginning of message processor                 */
    HPS hPS;              /* Handle for the Presentation Space              */
    RECTL rClient;        /* Handle to rectangle formed by client area      */
-   ULONG rc;             /* common return code value                       */
-   (void)rc; 			/* Silences unused warning */
+   ULONG rc = 0L;        /* return code; assigned by WinDlgBox calls       */
+   (void)rc;
 
    switch(message)
      {
@@ -198,18 +212,12 @@ MPARAM mp2;
 /*                                                                         */
 /***************************************************************************/
 
-MRESULT EXPENTRY SETFONTMsgProc(hWndDlg, message, mp1, mp2)
-HWND hWndDlg;
-USHORT message;
-MPARAM mp1;
-MPARAM mp2;
+MRESULT EXPENTRY SETFONTMsgProc(HWND hWndDlg, USHORT message, MPARAM mp1, MPARAM mp2)
 {
  static SHORT sfValidate = TRUE;
  SHORT  i, j ;
  static HWND  hWndParent;
-  (void)sfValidate;
-  (void)hWndParent;
-  //(void)hWnd;
+   /* All declarations must precede statements (C89 requirement). */
    typedef struct _SETFONTS {
       LONG         lNumberFonts ;
       SHORT        sDfltSize ;
@@ -224,10 +232,8 @@ MPARAM mp2;
    LONG         lNumberFonts, lNoFontsReq = 0L ;
    USHORT       usAllocSize, usMaxLB ;
    SHORT        sLBPos ;
-   SEL          selFonts ;
    CHAR         szFont[257];
-   HWND         hWnd ;
-   (void)hWnd;
+   HWND         hWnd = NULLHANDLE ;
    CHAR         szDfltFont[FACESIZE];
    PFONTMETRICS pFontMetrics = NULL;
    PSETFONTS    pSetFonts ;
@@ -237,6 +243,9 @@ MPARAM mp2;
    BOOL         fScanning ;
    BOOL         fSeries ;
 
+   (void)sfValidate;
+   (void)hWndParent;
+   (void)hWnd;
    hWnd = hWndDlg ;
    pSetFonts = (PSETFONTS)WinQueryWindowULong( hWndDlg, QWL_USER ) ;
  switch(message)
@@ -247,20 +256,19 @@ MPARAM mp2;
          lNumberFonts = GpiQueryFonts( hPS, QF_PUBLIC | QF_PRIVATE, NULL,
                                        &lNoFontsReq, 0L, (PFONTMETRICS)NULL ) ;
          usAllocSize = ((USHORT)sizeof(FONTMETRICS) * (USHORT)lNumberFonts)+sizeof(SETFONTS) ;
-         DOSASSERT( DosAllocSeg( usAllocSize, &selFonts, 0 ) ) ;
-         pSetFonts = MAKEP( selFonts, 0 ) ;
+         /* DosAllocSeg is a 16-bit API; use DosAllocMem for 32-bit OS/2. */
+         DosAllocMem( (PPVOID)&pSetFonts, usAllocSize, PAG_READ|PAG_WRITE|PAG_COMMIT ) ;
          WinSetWindowULong( hWndDlg, QWL_USER, (ULONG)pSetFonts ) ;
 
          pSetFonts->fatDefault.usRecordLength=sizeof(FATTRS) ;
          WinSendDlgItemMsg( hWndDlg, MLE_SETFONT, MLM_QUERYFONT, &(pSetFonts->fatDefault), 0L ) ;
-//         WinSendMsg( (HWND)0x1f677c20 , MLM_QUERYFONT, &(pSetFonts->fatDefault), 0L ) ;
-         pSetFonts->pFontMetrics = MAKEP( selFonts, sizeof(SETFONTS) ) ;
+         pSetFonts->pFontMetrics = (PFONTMETRICS)((PBYTE)pSetFonts + sizeof(SETFONTS)) ;
          GpiQueryFonts( hPS, QF_PUBLIC | QF_PRIVATE, NULL, &lNumberFonts,
                         (LONG)sizeof(FONTMETRICS), pSetFonts->pFontMetrics ) ;
          pSetFonts->lNumberFonts = lNumberFonts ;
          for ( i=0 ; i<(USHORT)lNumberFonts ; i++ )
          {
-            pFontMetrics = MAKEP( selFonts, (i*sizeof(FONTMETRICS))+sizeof(SETFONTS) ) ;
+            pFontMetrics = (PFONTMETRICS)((PBYTE)pSetFonts + sizeof(SETFONTS) + (i * sizeof(FONTMETRICS))) ;
             strcpy( szFont, pFontMetrics->szFacename ) ;
             if ( !(pFontMetrics->fsDefn & FM_DEFN_OUTLINE) )
             {
@@ -718,11 +726,7 @@ MPARAM mp2;
 /*                                                                         */
 /***************************************************************************/
 
-MRESULT EXPENTRY SETCOLORMsgProc(hWndDlg, message, mp1, mp2)
-HWND hWndDlg;
-USHORT message;
-MPARAM mp1;
-MPARAM mp2;
+MRESULT EXPENTRY SETCOLORMsgProc(HWND hWndDlg, USHORT message, MPARAM mp1, MPARAM mp2)
 {
  static SHORT sfValidate = TRUE;
  INT    i;

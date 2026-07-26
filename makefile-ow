@@ -1,0 +1,41 @@
+# makefile-ow -- Build SETOPT.exe with OpenWatcom 2.0 for OS/2
+#
+# Usage:
+#   wmake -f makefile-ow          build SETOPT.exe
+#   wmake -f makefile-ow clean    remove build artifacts
+#
+# Requires:
+#   OpenWatcom 2.0 (wcc386, wlink, wrc) on the PATH
+#
+# Outputs: bin-ow\SETOPT.exe
+#
+# Notes:
+#   -bt=os2 : target OS/2
+#   -zq     : quiet mode (no banner)
+#   -Ot     : optimize for speed
+#   -w3     : warning level 3
+#   wlink is driven via src\setopt-ow.lnk
+
+SRC = src
+OUT = bin-ow
+
+all : $(OUT)\SETOPT.exe .SYMBOLIC
+
+# Compile
+$(OUT)\SETOPT.obj : $(SRC)\SETOPT.C $(SRC)\SETOPT.H $(SRC)\SETCOLOR.H $(SRC)\SETFONT.H $(SRC)\SETOPT.RCH
+	wcc386 $(SRC)\SETOPT.C -I=$(SRC) -bt=os2 -zq -Ot -w3 -fo=$(OUT)\SETOPT.obj
+
+# Compile resources
+$(OUT)\SETOPT.res : $(SRC)\SETOPT.RC $(SRC)\SETOPT.RCH $(SRC)\SETCOLOR.H $(SRC)\SETFONT.H $(SRC)\SETOPT.ico
+	wrc -r -I=$(SRC) $(SRC)\SETOPT.RC -fo=$(OUT)\SETOPT.res
+
+# Link EXE via response file and bind resources
+$(OUT)\SETOPT.exe : $(OUT)\SETOPT.obj $(OUT)\SETOPT.res $(SRC)\setopt-ow.lnk
+	wlink @$(SRC)\setopt-ow.lnk
+	wrc $(OUT)\SETOPT.res $(OUT)\SETOPT.exe
+
+clean : .SYMBOLIC
+	-del $(OUT)\SETOPT.exe 2>nul
+	-del $(OUT)\SETOPT.obj 2>nul
+	-del $(OUT)\SETOPT.res 2>nul
+	-del $(OUT)\SETOPT.map 2>nul

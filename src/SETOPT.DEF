@@ -3,7 +3,7 @@
 ;-------------------------------------
 NAME            SETOPT WINDOWAPI
 
-DESCRIPTION     '@#OS2World:1.01#@##1## 25 May 2026 20:00:00     ARCAOS-507::::::v1.01@@SETOPT'
+DESCRIPTION     '@#OS2World:1.02#@##1## 2026-07-25     ARCAOS-507::::::@@SETOPT - MLE color and font sample'
 
 CODE            PRELOAD MOVEABLE
 DATA            LOADONCALL MOVEABLE MULTIPLE READWRITE

@@ -1,0 +1,35 @@
+# makefile-gcc -- Build SETOPT.exe with GCC 9.2 (bitwiseworks) for OS/2
+#
+# Usage:
+#   make -f makefile-gcc          build SETOPT.exe
+#   make -f makefile-gcc clean    remove build artifacts
+#
+# Requires:
+#   GCC 9.2 (bitwiseworks) on the PATH
+#   wrc (Watcom Resource Compiler)
+#   EMXOMFLD_TYPE=WLINK and EMXOMFLD_LINKER=wl.exe  (set by compile-gcc.cmd)
+#
+# Outputs: bin-gcc/SETOPT.exe
+
+SRC = src
+OUT = bin-gcc
+
+.PHONY: all clean
+
+all: $(OUT)/SETOPT.exe
+
+# Compile
+$(OUT)/SETOPT.obj: $(SRC)/SETOPT.C $(SRC)/SETOPT.H $(SRC)/SETCOLOR.H $(SRC)/SETFONT.H $(SRC)/SETOPT.RCH
+	gcc -Wall -Zomf -c -O2 -x c -I$(SRC) -o $(OUT)/SETOPT.obj $(SRC)/SETOPT.C
+
+# Compile resources
+$(OUT)/SETOPT.res: $(SRC)/SETOPT.RC $(SRC)/SETOPT.RCH $(SRC)/SETCOLOR.H $(SRC)/SETFONT.H $(SRC)/SETOPT.ico
+	wrc -r -I$(SRC) $(SRC)/SETOPT.RC -fo=$(OUT)/SETOPT.res
+
+# Link EXE and bind resources
+$(OUT)/SETOPT.exe: $(OUT)/SETOPT.obj $(OUT)/SETOPT.res $(SRC)/SETOPT.DEF
+	gcc -Zomf -o $(OUT)/SETOPT.exe $(OUT)/SETOPT.obj $(SRC)/SETOPT.DEF
+	wrc $(OUT)/SETOPT.res $(OUT)/SETOPT.exe
+
+clean:
+	rm -f $(OUT)/SETOPT.exe $(OUT)/SETOPT.obj $(OUT)/SETOPT.res $(OUT)/SETOPT.map

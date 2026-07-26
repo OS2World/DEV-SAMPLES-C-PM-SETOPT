@@ -1,0 +1,8 @@
+SYSTEM os2v2_pm
+NAME bin-ow/SETOPT.exe
+FILE bin-ow/SETOPT.obj
+EXPORT WndProc.1
+EXPORT SETFONTMsgProc.2
+EXPORT SETCOLORMsgProc.3
+OPTION DESCRIPTION '@#OS2World:1.02#@##1## 2026-07-25     ARCAOS-507::::::@@SETOPT - MLE color and font sample'
+OPTION QUIET
